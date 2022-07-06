@@ -35,8 +35,7 @@ AFRAME.registerComponent('page-controls', {
     this.onThumbstickChanged = this.onThumbstickChanged.bind(this);
     this.turnPage = this.turnPage.bind(this);
     el.addEventListener('thumbstickmoved', this.onThumbstickChanged);
-    el.addEventListener('triggerdown', this.turnPage);
-    document.addEventListener('click', this.turnPage);
+    document.addEventListener('dblclick', () => this.turnPage(1));
     el.addEventListener('bbuttondown', function () { self.zoomOut = true; });
     el.addEventListener('ybuttondown', function () { self.zoomOut = true; });
     el.addEventListener('bbuttonup', function () { self.zoomOut = false; });
@@ -47,15 +46,30 @@ AFRAME.registerComponent('page-controls', {
     el.addEventListener('xbuttonup', function () { self.zoomIn = false; });
     el.addEventListener('thumbstickdown', function () { pageEl.components.layer.toggleCompositorLayer(); });
     this.el.sceneEl.addEventListener('enter-vr', function () { pageEl.object3D.position.set(0, 1.8, -1.5); });
+    
+    // Set turning an image
+    if(window.initTurn == undefined || window.initTurn == false) {
+      window.initTurn = true;
+      setTimeout(() => {
+        top.window.initTurn = false;
+        this.turnPage(1);
+      }, 3000);
+    }
   },
 
-  turnPage: function () {
+  turnPage: function (amount) {
+    clearTimeout(window.clearpage);
+
     var pages = this.pages;
     var pageId;
-    this.pageIndex = (this.pageIndex + 1) % (pages.length);
+    this.pageIndex = (this.pageIndex + amount + pages.length) % (pages.length);
     pageId = pages[this.pageIndex].page;
     this.pageEl.setAttribute('layer', 'src', '#' + pageId);
     this.el.sceneEl.setAttribute('background', 'color', pages[this.pageIndex].color);
+
+    // window.clearpage = setTimeout(() => {
+    //   this.turnPage(1);
+    // }, 3000);
   },
 
   tick: function (time, delta) {
